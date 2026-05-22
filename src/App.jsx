@@ -1,122 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import './styles/globals.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+// Colaborador
+import { MisSolicitudes }  from './pages/colaborador/MisSolicitudes'
+import { SolicitudWizard } from './pages/colaborador/SolicitudWizard'
+import { SolicitudEnviada } from './pages/colaborador/SolicitudEnviada'
+import { Retorno }         from './pages/colaborador/Retorno'
+
+// Jefe
+import { JefeLista }   from './pages/jefe/JefeLista'
+import { JefeDetalle } from './pages/jefe/JefeDetalle'
+
+// Portería
+import { PorteriaSalida }  from './pages/porteria/PorteriaSalida'
+import { PorteriaRetorno } from './pages/porteria/PorteriaRetorno'
+
+export default function App() {
+  const params = new URLSearchParams(window.location.search)
+  const rol = params.get('rol') ?? 'colaborador'
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <Routes>
+        {/* Colaborador */}
+        <Route path="/mis-solicitudes" element={<MisSolicitudes />} />
+        <Route path="/solicitud"       element={<SolicitudWizard />} />
+        <Route path="/solicitud/enviada" element={<SolicitudEnviada />} />
+        <Route path="/retorno/:id"     element={<Retorno />} />
 
-      <div className="ticks"></div>
+        {/* Jefe */}
+        <Route path="/jefe"    element={<JefeLista />} />
+        <Route path="/jefe/:id" element={<JefeDetalle />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* Portería */}
+        <Route path="/porteria/salida"  element={<PorteriaSalida />} />
+        <Route path="/porteria/retorno" element={<PorteriaRetorno />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {/* Redirect raíz según rol */}
+        <Route path="/" element={
+          rol === 'jefe'             ? <Navigate to={`/jefe${window.location.search}`} /> :
+          rol === 'porteria_salida'  ? <Navigate to={`/porteria/salida${window.location.search}`} /> :
+          rol === 'porteria_retorno' ? <Navigate to={`/porteria/retorno${window.location.search}`} /> :
+                                      <Navigate to={`/mis-solicitudes${window.location.search}`} />
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }
-
-export default App

@@ -1,0 +1,110 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  max-width: 480px;
+  margin: 0 auto;
+}
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+.secTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-lighter);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+.actions {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  box-shadow: var(--shadow-inv);
+}
+
+/* Card */
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-4dp);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.cardHeader {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+}
+.cardHeader:hover { background: var(--bg); }
+.cardLeft  { display: flex; flex-direction: column; gap: 2px; }
+.cardId    { font-size: 10px; color: var(--text-lighter); }
+.cardVehiculo { font-size: 14px; font-weight: 600; color: var(--text-default); }
+.cardFecha { font-size: 11px; color: var(--text-lighter); }
+.cardRight { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.chevron   { font-size: 10px; color: var(--text-lighter); }
+
+/* Card body */
+.cardBody {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* QR */
+.qrWrap {
+  text-align: center;
+  padding: 16px 0 8px;
+}
+.qrTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-default);
+  margin-bottom: 14px;
+}
+.qrBox {
+  display: inline-flex;
+  padding: 10px;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid var(--bp100);
+}
+.qrId {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bp800);
+  margin-top: 10px;
+  letter-spacing: 1px;
+}
+
+/* Comentario jefe */
+.comentario {
+  background: var(--yellow-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--yellow-dark);
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.comentarioLabel { font-weight: 600; }
+
+/* Resumen cerrado */
+.resumen {
+  background: var(--bp100);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--bp800);
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

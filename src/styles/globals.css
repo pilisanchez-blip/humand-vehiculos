@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap');
+
+:root {
+  /* Colores Humand design system */
+  --text-default: #303036;
+  --text-lighter: #636271;
+  --brand-400: #6f93eb;
+  --bp100: #eff2ff;
+  --bp800: #213478;
+  --bg: #f5f6f8;
+  --white: #ffffff;
+  --green: #22c55e;
+  --green-dark: #166534;
+  --green-bg: #dcfce7;
+  --red: #ef4444;
+  --red-dark: #991b1b;
+  --red-bg: #fee2e2;
+  --yellow-dark: #92400e;
+  --yellow-bg: #fef3c7;
+  --border: #e5e7eb;
+
+  /* Sombras */
+  --shadow-4dp: -1px 4px 8px 0px rgba(233,233,244,1);
+  --shadow-8dp: -1px 8px 16px 0px rgba(170,170,186,0.45);
+  --shadow-inv: 0px -2px 24px 0px rgba(103,103,121,0.50);
+
+  /* Tipografía */
+  --font: 'Roboto', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-default);
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+}
+
+input, textarea, select {
+  font-family: var(--font);
+}

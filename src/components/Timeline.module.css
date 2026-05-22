@@ -1,0 +1,21 @@
+.timeline {
+  padding-left: 20px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.item {
+  position: relative;
+  padding: 0 0 16px 16px;
+}
+.dot {
+  position: absolute;
+  left: -6px; top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.done .dot   { background: var(--green); }
+.active .dot { background: var(--bp800); box-shadow: 0 0 0 3px var(--bp100); }
+
+.time  { font-size: 10px; color: var(--text-lighter); display: block; }
+.label { font-size: 13px; font-weight: 600; display: block; margin-top: 2px; }
