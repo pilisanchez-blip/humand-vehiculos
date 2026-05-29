@@ -154,5 +154,4 @@ export async function buscarTicketsPorteria(codigo) {
 
   if (error) throw error
   return data ?? []
-}ta ?? []
 }
