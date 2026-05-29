@@ -32,7 +32,7 @@ export function JefeDetalle() {
     try {
       const fn = tipo === 'aprobar' ? aprobarTicket : rechazarTicket
       await fn(id, usuario.userId, usuario.nombre, comentario)
-      await fetch('/api/bot', {
+      fetch('https://uasntnkbhtqkljfqfksv.supabase.co/functions/v1/bot-notificaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ evento: tipo === 'aprobar' ? 'APROBADO' : 'RECHAZADO', ticketId: id }),

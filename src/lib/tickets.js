@@ -66,6 +66,7 @@ export async function aprobarTicket(id, jefeId, jefeNombre, comentario = '') {
       jefe_id: jefeId,
       jefe_nombre: jefeNombre,
       jefe_comentario: comentario,
+      jefe_humand_id: jefeId,
     })
     .eq('id', id)
     .select()
@@ -83,6 +84,7 @@ export async function rechazarTicket(id, jefeId, jefeNombre, comentario) {
       jefe_id: jefeId,
       jefe_nombre: jefeNombre,
       jefe_comentario: comentario,
+      jefe_humand_id: jefeId,
     })
     .eq('id', id)
     .select()

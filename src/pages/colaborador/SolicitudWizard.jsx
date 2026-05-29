@@ -46,6 +46,7 @@ export function SolicitudWizard() {
       const ticket = await crearTicket({
         colaborador_id:     usuario.userId,
         colaborador_nombre: usuario.nombre,
+        colaborador_humand_id: usuario.userId,
         seccion:            usuario.seccion,
         vehiculo_placa:     vehiculoSel.placa,
         acompanantes,
@@ -63,13 +64,11 @@ export function SolicitudWizard() {
   }
 
   async function notificarBot(evento, ticketId) {
-    try {
-      await fetch('/api/bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ evento, ticketId }),
-      })
-    } catch (_) {}
+    fetch('https://uasntnkbhtqkljfqfksv.supabase.co/functions/v1/bot-notificaciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ evento, ticketId }),
+    }).catch(() => {})
   }
 
   return (
