@@ -20,7 +20,6 @@ export function QrScanner({ onResult, onError }) {
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 220, height: 220 } },
       (decodedText) => {
-        alert('QR leído: ' + decodedText) 
         onResultRef.current?.(decodedText)
         scanner.stop().catch(() => {})
       },
