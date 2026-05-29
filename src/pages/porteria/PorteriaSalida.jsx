@@ -15,25 +15,31 @@ export function PorteriaSalida() {
   const [error,          setError]          = useState('')
   const [confirmado,     setConfirmado]     = useState(false)
   const [mostrarScanner, setMostrarScanner] = useState(false)
+  const [debug,          setDebug]          = useState('')
 
   async function buscar(codigoParam) {
     const val = (codigoParam ?? codigo).trim().toUpperCase()
     if (!val) return
     setLoading(true)
     setError('')
+    setDebug(`Buscando: "${val}"`)
     setTicket(null)
     setResultados([])
     setConfirmado(false)
     try {
       const res = await buscarTicketsPorteria(val)
+      setDebug(`Código: "${val}" | Resultados: ${res.length}`)
       if (res.length === 0) {
         setError('No se encontró ningún ticket con ese código.')
       } else if (res.length === 1) {
         setTicket(res[0])
+        setDebug('')
       } else {
         setResultados(res)
+        setDebug('')
       }
     } catch (e) {
+      setDebug('')
       setError(`Error al buscar "${val}": ${e?.message ?? 'Intentá de nuevo.'}`)
     } finally {
       setLoading(false)
@@ -46,8 +52,8 @@ export function PorteriaSalida() {
     try {
       await confirmarSalida(ticket.id, usuario.userId, usuario.nombre)
       setConfirmado(true)
-    } catch {
-      setError('Error al confirmar. Intentá de nuevo.')
+    } catch (e) {
+      setError(`Error al confirmar: ${e?.message ?? 'Intentá de nuevo.'}`)
     } finally {
       setSaving(false)
     }
@@ -59,6 +65,7 @@ export function PorteriaSalida() {
     setResultados([])
     setConfirmado(false)
     setError('')
+    setDebug('')
     setMostrarScanner(false)
   }
 
@@ -73,16 +80,15 @@ export function PorteriaSalida() {
           <>
             {mostrarScanner ? (
               <QrScanner
-              onResult={(texto) => {
-                console.log('QR leído:', texto)
-                setCodigo(texto)
-                setMostrarScanner(false)
-                buscar(texto)
-              }}
-              onError={(err) => {
-                setMostrarScanner(false)
-                setError(`Error cámara: ${err?.message ?? err}`)
-              }}
+                onResult={(texto) => {
+                  setCodigo(texto)
+                  setMostrarScanner(false)
+                  buscar(texto)
+                }}
+                onError={(err) => {
+                  setMostrarScanner(false)
+                  setError(`Error cámara: ${err?.message ?? err}`)
+                }}
               />
             ) : (
               <div
@@ -111,7 +117,8 @@ export function PorteriaSalida() {
             </Field>
 
             {loading && <Spinner />}
-            {error   && <Banner type="error" icon="⚠️">{error}</Banner>}
+            {debug    && <Banner type="info" icon="🔍">{debug}</Banner>}
+            {error    && <Banner type="error" icon="⚠️">{error}</Banner>}
 
             {resultados.length > 1 && (
               <>
