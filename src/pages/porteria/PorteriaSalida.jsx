@@ -65,77 +65,74 @@ export function PorteriaSalida() {
   return (
     <div className={styles.page}>
       <PageHeader title="Portería — Salida" subtitle="Verificá el formulario antes de habilitar" />
-
+  
       <div className={styles.content}>
-
-        {/* BÚSQUEDA */}
-        {!ticket && !confirmado && (
-          <>
-            {mostrarScanner ? (
-              <QrScanner
-                onResult={(texto) => {
-                  setCodigo(texto)
-                  setMostrarScanner(false)
-                  setTimeout(() => buscar(texto), 50)
-                }}
-                onError={(err) => {
-                  setMostrarScanner(false)
-                  setError(`Error cámara: ${err?.message ?? err}`)
-                }}
+  
+        {/* BÚSQUEDA — siempre montado, oculto cuando hay ticket o confirmado */}
+        <div style={{ display: ticket || confirmado ? 'none' : 'block' }}>
+          {mostrarScanner ? (
+            <QrScanner
+              onResult={(texto) => {
+                setMostrarScanner(false)
+                buscar(texto)
+              }}
+              onError={(err) => {
+                setMostrarScanner(false)
+                setError(`Error cámara: ${err?.message ?? err}`)
+              }}
+            />
+          ) : (
+            <div
+              className={styles.scanArea}
+              onClick={() => setMostrarScanner(true)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className={styles.scanIcon}>📷</div>
+              <p className={styles.scanText}>Tocá para escanear el QR</p>
+              <p className={styles.scanSub}>O ingresá el código manualmente</p>
+            </div>
+          )}
+  
+          <div className={styles.orDiv}>o</div>
+  
+          <Field label="Código de ticket">
+            <div className={styles.searchRow}>
+              <Input
+                value={codigo}
+                onChange={e => setCodigo(e.target.value)}
+                placeholder="Ej: VEH-2026-0001"
+                onKeyDown={e => e.key === 'Enter' && buscar()}
               />
-            ) : (
-              <div
-                className={styles.scanArea}
-                onClick={() => setMostrarScanner(true)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className={styles.scanIcon}>📷</div>
-                <p className={styles.scanText}>Tocá para escanear el QR</p>
-                <p className={styles.scanSub}>O ingresá el código manualmente</p>
-              </div>
-            )}
-
-            <div className={styles.orDiv}>o</div>
-
-            <Field label="Código de ticket">
-              <div className={styles.searchRow}>
-                <Input
-                  value={codigo}
-                  onChange={e => setCodigo(e.target.value)}
-                  placeholder="Ej: VEH-2026-0001"
-                  onKeyDown={e => e.key === 'Enter' && buscar()}
-                />
-                <Btn variant="primary" onClick={() => buscar()}>Buscar</Btn>
-              </div>
-            </Field>
-
-            {loading && <Spinner />}
-            {error   && <Banner type="error" icon="⚠️">{error}</Banner>}
-
-            {resultados.length > 1 && (
-              <>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-lighter)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>
-                  {resultados.length} tickets encontrados — seleccioná uno
-                </p>
-                {resultados.map(t => (
-                  <div
-                    key={t.id}
-                    onClick={() => { setTicket(t); setResultados([]) }}
-                    className={styles.resultCard}
-                  >
-                    <div className={styles.resultLeft}>
-                      <span className={styles.resultId}>{t.id}</span>
-                      <span className={styles.resultNombre}>{t.colaborador_nombre}</span>
-                      <span className={styles.resultDet}>{t.vehiculo_placa} · {new Date(t.ts_solicitud).toLocaleDateString('es-AR')}</span>
-                    </div>
-                    <StatusBadge estado={t.estado} />
+              <Btn variant="primary" onClick={() => buscar()}>Buscar</Btn>
+            </div>
+          </Field>
+  
+          {loading && <Spinner />}
+          {error   && <Banner type="error" icon="⚠️">{error}</Banner>}
+  
+          {resultados.length > 1 && (
+            <>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-lighter)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>
+                {resultados.length} tickets encontrados — seleccioná uno
+              </p>
+              {resultados.map(t => (
+                <div
+                  key={t.id}
+                  onClick={() => { setTicket(t); setResultados([]) }}
+                  className={styles.resultCard}
+                >
+                  <div className={styles.resultLeft}>
+                    <span className={styles.resultId}>{t.id}</span>
+                    <span className={styles.resultNombre}>{t.colaborador_nombre}</span>
+                    <span className={styles.resultDet}>{t.vehiculo_placa} · {new Date(t.ts_solicitud).toLocaleDateString('es-AR')}</span>
                   </div>
-                ))}
-              </>
-            )}
-          </>
-        )}
-
+                  <StatusBadge estado={t.estado} />
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+  
         {/* DETALLE DEL TICKET */}
         {ticket && !confirmado && (
           <>
@@ -166,7 +163,7 @@ export function PorteriaSalida() {
             </div>
           </>
         )}
-
+  
         {/* CONFIRMADO */}
         {confirmado && (
           <>
@@ -180,7 +177,7 @@ export function PorteriaSalida() {
           </>
         )}
       </div>
-
+  
       <div className={styles.actions}>
         {ticket && !confirmado && ticket.estado === 'APROBADO' && (
           <Btn variant="success" onClick={confirmar} disabled={saving} full>
