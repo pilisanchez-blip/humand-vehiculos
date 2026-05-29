@@ -14,15 +14,14 @@ export function SolicitudWizard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Datos del formulario
   const [fechaSalida, setFechaSalida] = useState('')
   const [horaSalida, setHoraSalida]   = useState('')
   const [vehiculos, setVehiculos]     = useState([])
   const [vehiculoSel, setVehiculoSel] = useState(null)
   const [kmInicial, setKmInicial]     = useState('')
   const [acompanantes, setAcompanantes] = useState([])
+  const [acompanantesValidos, setAcompanantesValidos] = useState(true)
 
-  // ─── Paso 0 → 1: cargar vehículos ───────────────────────────────────────
   async function irPaso1() {
     if (!fechaSalida || !horaSalida) { setError('Completá fecha y hora de salida'); return }
     setError('')
@@ -38,22 +37,20 @@ export function SolicitudWizard() {
     }
   }
 
-  // ─── Envío final ─────────────────────────────────────────────────────────
   async function enviar() {
     setLoading(true)
     setError('')
     try {
       const ticket = await crearTicket({
-        colaborador_id:     usuario.userId,
-        colaborador_nombre: usuario.nombre,
+        colaborador_id:        usuario.userId,
+        colaborador_nombre:    usuario.nombre,
         colaborador_humand_id: usuario.userId,
-        seccion:            usuario.seccion,
-        vehiculo_placa:     vehiculoSel.placa,
+        seccion:               usuario.seccion,
+        vehiculo_placa:        vehiculoSel.placa,
         acompanantes,
-        km_inicial:         parseInt(kmInicial),
-        ts_solicitud:       new Date(fechaSalida + 'T' + horaSalida).toISOString(),
+        km_inicial:            parseInt(kmInicial),
+        ts_solicitud:          new Date(fechaSalida + 'T' + horaSalida).toISOString(),
       })
-      // Notificar al bot (fire & forget)
       notificarBot('SOLICITUD_ENVIADA', ticket.id)
       navigate('/solicitud/enviada?id=' + ticket.id)
     } catch (e) {
@@ -63,12 +60,26 @@ export function SolicitudWizard() {
     }
   }
 
-  async function notificarBot(evento, ticketId) {
+  function notificarBot(evento, ticketId) {
     fetch('https://uasntnkbhtqkljfqfksv.supabase.co/functions/v1/bot-notificaciones', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evento, ticketId }),
     }).catch(() => {})
+  }
+
+  function validarAcompanantes() {
+    for (const a of acompanantes) {
+      if (a.tipo === 'interno' && !a.codigo) {
+        setError('Los acompañantes internos deben seleccionarse de la lista')
+        return false
+      }
+      if (a.tipo === 'externo' && !a.nombre.trim()) {
+        setError('Completá el nombre de los acompañantes externos')
+        return false
+      }
+    }
+    return true
   }
 
   return (
@@ -94,7 +105,22 @@ export function SolicitudWizard() {
               <Input type="date" value={fechaSalida} onChange={e => setFechaSalida(e.target.value)} />
             </Field>
             <Field label="Hora de salida">
-              <Input type="time" value={horaSalida} onChange={e => setHoraSalida(e.target.value)} />
+              <input
+                type="time"
+                value={horaSalida}
+                onChange={e => setHoraSalida(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  color: 'var(--text)',
+                  background: 'white',
+                  boxSizing: 'border-box',
+                }}
+              />
             </Field>
           </>
         )}
@@ -169,6 +195,10 @@ export function SolicitudWizard() {
             <Btn variant="primary" onClick={() => {
               if (paso === 0) irPaso1()
               else if (paso === 1 && (!vehiculoSel || !kmInicial)) setError('Seleccioná un vehículo e ingresá el KM')
+              else if (paso === 2) {
+                if (!validarAcompanantes()) return
+                setError(''); setPaso(p => p + 1)
+              }
               else { setError(''); setPaso(p => p + 1) }
             }}>
               Siguiente →
@@ -232,6 +262,7 @@ function AcompananteCard({ index, data, onUpdate, onQuitar }) {
 
   async function buscar(texto) {
     onUpdate('nombre', texto)
+    onUpdate('codigo', '')          // resetear codigo al tipear
     if (data.tipo === 'externo' || texto.length < 3) { setResultados([]); return }
     setBuscando(true)
     try {
@@ -247,8 +278,21 @@ function AcompananteCard({ index, data, onUpdate, onQuitar }) {
     setResultados([])
   }
 
+  function cambiarTipo(t) {
+    onUpdate('tipo', t)
+    onUpdate('nombre', '')
+    onUpdate('codigo', '')
+    setResultados([])
+  }
+
+  const esInternoSinSeleccionar = data.tipo === 'interno' && data.nombre && !data.codigo
+
   return (
-    <div style={{ background: 'white', border: '1.5px solid var(--border)', borderRadius: 8, padding: '12px 14px', marginBottom: 8 }}>
+    <div style={{
+      background: 'white',
+      border: `1.5px solid ${esInternoSinSeleccionar ? 'var(--error, #ef4444)' : 'var(--border)'}`,
+      borderRadius: 8, padding: '12px 14px', marginBottom: 8
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-lighter)' }}>Acompañante {index + 1}</span>
         <button onClick={onQuitar} style={{ background: 'none', border: 'none', color: 'var(--border)', fontSize: 18, cursor: 'pointer' }}>×</button>
@@ -257,7 +301,7 @@ function AcompananteCard({ index, data, onUpdate, onQuitar }) {
         {['interno', 'externo'].map(t => (
           <button
             key={t}
-            onClick={() => { onUpdate('tipo', t); setResultados([]) }}
+            onClick={() => cambiarTipo(t)}
             style={{
               flex: 1, padding: '6px', borderRadius: 6, fontSize: 11, fontWeight: 600,
               border: '1.5px solid', cursor: 'pointer',
@@ -275,8 +319,25 @@ function AcompananteCard({ index, data, onUpdate, onQuitar }) {
           value={data.nombre}
           onChange={e => buscar(e.target.value)}
           placeholder={data.tipo === 'interno' ? 'Nombre o código...' : 'Nombre del acompañante'}
+          readOnly={data.tipo === 'interno' && !!data.codigo}
         />
       </Field>
+      {esInternoSinSeleccionar && (
+        <p style={{ fontSize: 11, color: 'var(--error, #ef4444)', margin: '-4px 0 8px' }}>
+          Seleccioná un resultado de la lista
+        </p>
+      )}
+      {data.tipo === 'interno' && data.codigo && (
+        <p style={{ fontSize: 11, color: 'var(--text-lighter)', margin: '-4px 0 8px' }}>
+          ✓ {data.codigo}
+          <button
+            onClick={() => { onUpdate('nombre', ''); onUpdate('codigo', '') }}
+            style={{ marginLeft: 8, background: 'none', border: 'none', color: 'var(--text-lighter)', cursor: 'pointer', fontSize: 11 }}
+          >
+            cambiar
+          </button>
+        </p>
+      )}
       {buscando && <Spinner />}
       {resultados.length > 0 && (
         <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: -8 }}>
