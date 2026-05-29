@@ -19,6 +19,7 @@ export function PorteriaSalida() {
 
   async function buscar(codigoParam) {
     const val = (codigoParam ?? codigo).trim().toUpperCase()
+    alert('buscar llamado con: ' + val) 
     if (!val) return
     setLoading(true)
     setError('')
@@ -28,6 +29,7 @@ export function PorteriaSalida() {
     setConfirmado(false)
     try {
       const res = await buscarTicketsPorteria(val)
+      alert('Resultados: ' + res.length + ' | ' + JSON.stringify(res[0] ?? 'ninguno'))
       setDebug(`Código: "${val}" | Resultados: ${res.length}`)
       if (res.length === 0) {
         setError('No se encontró ningún ticket con ese código.')
@@ -39,6 +41,7 @@ export function PorteriaSalida() {
         setDebug('')
       }
     } catch (e) {
+      alert('ERROR: ' + e?.message) 
       setDebug('')
       setError(`Error al buscar "${val}": ${e?.message ?? 'Intentá de nuevo.'}`)
     } finally {
