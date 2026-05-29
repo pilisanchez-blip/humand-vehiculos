@@ -3,8 +3,14 @@ import { Html5Qrcode } from 'html5-qrcode'
 import styles from './QrScanner.module.css'
 
 export function QrScanner({ onResult, onError }) {
-  const scannerRef = useRef(null)
+  const scannerRef  = useRef(null)
+  const onResultRef = useRef(onResult)
+  const onErrorRef  = useRef(onError)
   const containerId = 'qr-reader'
+
+  // Mantener refs actualizadas sin reiniciar el scanner
+  useEffect(() => { onResultRef.current = onResult }, [onResult])
+  useEffect(() => { onErrorRef.current  = onError  }, [onError])
 
   useEffect(() => {
     const scanner = new Html5Qrcode(containerId)
@@ -14,12 +20,12 @@ export function QrScanner({ onResult, onError }) {
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 220, height: 220 } },
       (decodedText) => {
-        onResult(decodedText)
+        onResultRef.current?.(decodedText)
         scanner.stop().catch(() => {})
       },
-      () => {} // errores de frame — silenciar
+      () => {}
     ).catch((err) => {
-      onError?.(err)
+      onErrorRef.current?.(err)
     })
 
     return () => {
