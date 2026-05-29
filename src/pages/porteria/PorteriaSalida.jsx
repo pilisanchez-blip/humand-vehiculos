@@ -74,6 +74,7 @@ export function PorteriaSalida() {
             {mostrarScanner ? (
               <QrScanner
                 onResult={(texto) => {
+                  console.log('QR leído:', texto) 
                   setCodigo(texto)
                   setMostrarScanner(false)
                   buscar(texto)
