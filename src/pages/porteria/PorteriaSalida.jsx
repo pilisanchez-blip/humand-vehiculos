@@ -15,34 +15,28 @@ export function PorteriaSalida() {
   const [error,          setError]          = useState('')
   const [confirmado,     setConfirmado]     = useState(false)
   const [mostrarScanner, setMostrarScanner] = useState(false)
-  const [debug,          setDebug]          = useState('')
 
   async function buscar(codigoParam) {
     const val = (codigoParam ?? codigo).trim().toUpperCase()
     if (!val) return
     setLoading(true)
     setError('')
-    setDebug(`Buscando: "${val}"`)
     setTicket(null)
     setResultados([])
     setConfirmado(false)
     try {
       const res = await buscarTicketsPorteria(val)
-      setDebug(`Código: "${val}" | Resultados: ${res.length}`)
+      setLoading(false)
       if (res.length === 0) {
         setError('No se encontró ningún ticket con ese código.')
       } else if (res.length === 1) {
         setTicket(res[0])
-        setDebug('')
       } else {
         setResultados(res)
-        setDebug('')
       }
     } catch (e) {
-      setDebug('')
-      setError(`Error al buscar "${val}": ${e?.message ?? 'Intentá de nuevo.'}`)
-    } finally {
       setLoading(false)
+      setError(`Error al buscar "${val}": ${e?.message ?? 'Intentá de nuevo.'}`)
     }
   }
 
@@ -65,7 +59,6 @@ export function PorteriaSalida() {
     setResultados([])
     setConfirmado(false)
     setError('')
-    setDebug('')
     setMostrarScanner(false)
   }
 
@@ -83,7 +76,7 @@ export function PorteriaSalida() {
                 onResult={(texto) => {
                   setCodigo(texto)
                   setMostrarScanner(false)
-                  buscar(texto)
+                  setTimeout(() => buscar(texto), 50)
                 }}
                 onError={(err) => {
                   setMostrarScanner(false)
@@ -117,8 +110,7 @@ export function PorteriaSalida() {
             </Field>
 
             {loading && <Spinner />}
-            {debug    && <Banner type="info" icon="🔍">{debug}</Banner>}
-            {error    && <Banner type="error" icon="⚠️">{error}</Banner>}
+            {error   && <Banner type="error" icon="⚠️">{error}</Banner>}
 
             {resultados.length > 1 && (
               <>
