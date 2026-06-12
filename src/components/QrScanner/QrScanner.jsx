@@ -21,7 +21,6 @@ export function QrScanner({ onResult, onError }) {
       { fps: 10, qrbox: { width: 220, height: 220 } },
       (decodedText) => {
         onResultRef.current?.(decodedText)
-        scanner.stop().catch(() => {})
       },
       () => {}
     ).catch((err) => {
