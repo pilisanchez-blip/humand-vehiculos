@@ -7,7 +7,7 @@ const CORS = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const BOT_ID       = Deno.env.get('HUMAND_BOT_ID') ?? '937440'
+const BOT_ID       = Deno.env.get('HUMAND_BOT_ID') ?? 'notificaciones.saguapac'
 const BOT_PASSWORD = Deno.env.get('HUMAND_BOT_PASSWORD')!
 
 serve(async (req) => {
@@ -30,6 +30,9 @@ serve(async (req) => {
       })
     }
     console.log('login usuario ok')
+    console.log('loginData keys:', Object.keys(loginData))
+    console.log('loginData.employeeInternalId:', loginData.employeeInternalId)
+    console.log('loginData.id:', loginData.id)
 
     // Paso 2 — login del bot para obtener Bearer token
     const botLoginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
@@ -49,10 +52,10 @@ serve(async (req) => {
 
     // Paso 3 — traer segmentaciones con Bearer del bot
     const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + loginData.employeeInternalId, {
-  headers: {
-    'Authorization': 'Bearer ' + botLoginData.token,
-  },
-})
+      headers: {
+        'Authorization': 'Bearer ' + botLoginData.token,
+      },
+    })
     const userData = await userRes.json()
     console.log('userRes status:', userRes.status)
     console.log('userData full:', JSON.stringify(userData))
