@@ -1,15 +1,20 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+)
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const { employeeInternalId, password } = await req.json()
-  console.log('login intento:', employeeInternalId)
 
   // Paso 1 — login
   const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
@@ -17,10 +22,7 @@ serve(async (req) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ employeeInternalId, instanceId: 7723, password }),
   })
-
   const loginData = await loginRes.json()
-  console.log('loginRes.ok:', loginRes.ok, 'status:', loginRes.status)
-
   if (!loginRes.ok) {
     return new Response(JSON.stringify(loginData), {
       status: loginRes.status,
@@ -29,27 +31,28 @@ serve(async (req) => {
   }
 
   const token = loginData.token
-  console.log('token obtenido:', token ? 'si' : 'no')
 
-  // Paso 2 — traer perfil con segmentaciones
-  const meRes = await fetch('https://api-prod.humand.co/api/v1/users/' + employeeInternalId, {
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-    },
+  // Paso 2 — traer segmentaciones del usuario
+  const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + employeeInternalId, {
+    headers: { 'Authorization': 'Bearer ' + token },
   })
+  const userData = await userRes.json()
+  const segmentaciones = userData.segmentations ?? []
+  const seccionNombres = segmentaciones.map((s) => s.item).filter(Boolean)
+  const seccion = seccionNombres[0] ?? ''
 
-  const meData = await meRes.json()
-  console.log('meData segmentation:', JSON.stringify(meData.segmentation))
+  // Paso 3 — buscar seccionIds en Supabase por nombre de sección
+  const { data: mapData } = await supabase
+    .from('vehiculo_segmentacion_map')
+    .select('segmentation_item_id, seccion_spreadsheet')
+    .in('seccion_spreadsheet', seccionNombres)
 
-  const segmentacion = meData.segmentation ?? []
-  const seccionIds = segmentacion.map((s) => s.id ?? s.itemId).filter(Boolean)
-  const seccionNombres = segmentacion.map((s) => s.item ?? s.name).filter(Boolean)
+  const seccionIds = (mapData ?? []).map((r) => r.segmentation_item_id)
 
   const resultado = {
     ...loginData,
     seccionIds,
-    seccion: seccionNombres[0] ?? '',
+    seccion,
   }
 
   return new Response(JSON.stringify(resultado), {
