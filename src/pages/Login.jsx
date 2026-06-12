@@ -24,9 +24,9 @@ export default function Login() {
         .eq('activo', true)
         .maybeSingle()
 
-      const esAdmin = data.user.permissions?.MANAGE_USERS === true
+      const esAdmin      = data.user.permissions?.MANAGE_USERS === true
       const subordinados = await getSubordinados(userId)
-      const esJefe = subordinados.length > 0
+      const esJefe       = subordinados.length > 0
 
       let rol = 'colaborador'
       if (porteria?.rol) {
@@ -36,14 +36,15 @@ export default function Login() {
       }
 
       saveSession({
-        userId:     String(userId),
-  nombre:     `${data.user.firstName} ${data.user.lastName}`,
-  rol,
-  esAdmin,
-  token:      data.accessToken,
-  seccionIds: data.seccionIds ?? [],
-  seccion:    data.seccion ?? '',
-})
+        userId:         String(userId),
+        nombre:         `${data.user.firstName} ${data.user.lastName}`,
+        rol,
+        esAdmin,
+        token:          data.accessToken,
+        seccionIds:     data.seccionIds ?? [],
+        seccion:        data.seccion ?? '',
+        jefeInternalId: data.jefeInternalId ?? null,
+      })
 
       window.location.href = '/'
     } catch (err) {
