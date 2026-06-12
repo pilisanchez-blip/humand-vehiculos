@@ -37,13 +37,13 @@ export default function Login() {
 
       saveSession({
         userId:     String(userId),
-        nombre:     `${data.user.firstName} ${data.user.lastName}`,
-        rol,
-        esAdmin,
-        token:      data.accessToken,
-        seccionIds: [],
-        seccion:    '',
-      })
+  nombre:     `${data.user.firstName} ${data.user.lastName}`,
+  rol,
+  esAdmin,
+  token:      data.accessToken,
+  seccionIds: data.seccionIds ?? [],
+  seccion:    data.seccion ?? '',
+})
 
       window.location.href = '/'
     } catch (err) {
