@@ -34,6 +34,7 @@ serve(async (req) => {
     },
   })
   const meData = await meRes.json()
+  console.log('meData:', JSON.stringify(meData)) 
 
   // Extraer seccionIds y nombre de sección
   const segmentacion = meData.segmentation ?? []
