@@ -54,12 +54,13 @@ export function AutoBadge() {
 
 export function StatusBadge({ estado }) {
   const map = {
-    PENDIENTE:  { label: 'Pendiente',  cls: styles.badgePending },
-    APROBADO:   { label: 'Aprobado',   cls: styles.badgeOk },
-    RECHAZADO:  { label: 'Rechazado',  cls: styles.badgeNo },
-    EN_VIAJE:   { label: 'En viaje',   cls: styles.badgeTransit },
-    CERRADO:    { label: 'Cerrado',    cls: styles.badgeClosed },
-  }
+  PENDIENTE:        { label: 'Pendiente',        cls: styles.badgePending },
+  APROBADO:         { label: 'Aprobado',         cls: styles.badgeOk },
+  RECHAZADO:        { label: 'Rechazado',        cls: styles.badgeNo },
+  EN_VIAJE:         { label: 'En viaje',         cls: styles.badgeTransit },
+  COMPLETAR_DATOS:  { label: 'Completar datos',  cls: styles.badgePending },
+  CERRADO:          { label: 'Cerrado',          cls: styles.badgeClosed },
+}
   const { label, cls } = map[estado] ?? { label: estado, cls: '' }
   return <span className={[styles.badge, cls].join(' ')}>{label}</span>
 }
