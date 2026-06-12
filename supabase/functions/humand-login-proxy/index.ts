@@ -10,15 +10,44 @@ serve(async (req) => {
 
   const { employeeInternalId, password } = await req.json()
 
-  const res = await fetch('https://api-prod.humand.co/api/v1/users/login', {
+  // Paso 1 — login
+  const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ employeeInternalId, instanceId: 7723, password }),
   })
+  const loginData = await loginRes.json()
+  if (!loginRes.ok) {
+    return new Response(JSON.stringify(loginData), {
+      status: loginRes.status,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    })
+  }
 
-  const data = await res.json()
-  return new Response(JSON.stringify(data), {
-    status: res.status,
+  const token = loginData.token
+
+  // Paso 2 — traer perfil con segmentaciones
+  const meRes = await fetch('https://api-prod.humand.co/api/v1/users/me', {
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+    },
+  })
+  const meData = await meRes.json()
+
+  // Extraer seccionIds y nombre de sección
+  const segmentacion = meData.segmentation ?? []
+  const seccionIds = segmentacion.map((s) => s.id ?? s.itemId).filter(Boolean)
+  const seccionNombres = segmentacion.map((s) => s.item ?? s.name).filter(Boolean)
+
+  const resultado = {
+    ...loginData,
+    seccionIds,
+    seccion: seccionNombres[0] ?? '',
+  }
+
+  return new Response(JSON.stringify(resultado), {
+    status: 200,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   })
 })
