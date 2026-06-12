@@ -1,5 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 const BOT_BASIC    = Deno.env.get('HUMAND_BOT_BASIC')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -40,11 +45,11 @@ async function mandarMensaje(channelId: string, texto: string) {
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   try {
     const { evento, ticketId } = await req.json()
     console.log('evento:', evento, 'ticketId:', ticketId)
 
-    // Traer ticket de Supabase
     const ticketRes = await fetch(
       SUPABASE_URL + '/rest/v1/tickets?id=eq.' + ticketId + '&select=*&limit=1',
       {
@@ -62,10 +67,9 @@ serve(async (req) => {
     if (evento === 'SOLICITUD_ENVIADA') {
       if (!ticket.jefe_id) {
         console.log('sin jefe_id, skip')
-        return new Response(JSON.stringify({ ok: true, skipped: true }), { status: 200 })
+        return new Response(JSON.stringify({ ok: true, skipped: true }), { status: 200, headers: CORS })
       }
 
-      // Resolver numeric ID del jefe
       const jefeRes = await fetch(
         'https://api-prod.humand.co/public/api/v1/users/' + encodeURIComponent(ticket.jefe_id),
         { headers: { 'Authorization': 'Basic ' + BOT_BASIC } }
@@ -87,10 +91,13 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS, 'Content-Type': 'application/json' },
     })
   } catch (e: any) {
     console.log('ERROR:', e.message)
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    })
   }
 })
