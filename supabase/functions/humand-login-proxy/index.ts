@@ -1,10 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -27,6 +29,7 @@ serve(async (req) => {
       })
     }
 
+    console.log('login ok')
     const token = loginData.token
 
     // Paso 2 — traer segmentaciones
@@ -34,26 +37,27 @@ serve(async (req) => {
       headers: { 'Authorization': 'Bearer ' + token },
     })
     const userData = await userRes.json()
-    console.log('segmentations:', JSON.stringify(userData.segmentations))
-
     const segmentaciones = userData.segmentations ?? []
+    console.log('segmentaciones:', JSON.stringify(segmentaciones))
+
     const seccionNombres = segmentaciones.map((s) => s.item).filter(Boolean)
     const seccion = seccionNombres[0] ?? ''
 
-    // Paso 3 — buscar seccionIds en Supabase
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // Paso 3 — buscar seccionIds via REST
+    const nombres = seccionNombres.map((n) => '"' + n + '"').join(',')
+    const mapRes = await fetch(
+      SUPABASE_URL + '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' + encodeURIComponent(nombres) + ')',
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+        },
+      }
     )
+    const mapData = await mapRes.json()
+    console.log('mapData:', JSON.stringify(mapData))
 
-    const { data: mapData, error: mapError } = await supabase
-      .from('vehiculo_segmentacion_map')
-      .select('segmentation_item_id, seccion_spreadsheet')
-      .in('seccion_spreadsheet', seccionNombres)
-
-    console.log('mapData:', JSON.stringify(mapData), 'mapError:', JSON.stringify(mapError))
-
-    const seccionIds = (mapData ?? []).map((r) => r.segmentation_item_id)
+    const seccionIds = Array.isArray(mapData) ? mapData.map((r) => r.segmentation_item_id) : []
 
     return new Response(JSON.stringify({ ...loginData, seccionIds, seccion }), {
       status: 200,
