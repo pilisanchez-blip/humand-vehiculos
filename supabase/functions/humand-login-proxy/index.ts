@@ -12,7 +12,7 @@ serve(async (req) => {
   console.log('login intento:', employeeInternalId)
 
   // Paso 1 — login
-  const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
+  const loginRes = await fetch(''https://api-prod.humand.co/api/v1/users/' + employeeInternalId {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ employeeInternalId, instanceId: 7723, password }),
