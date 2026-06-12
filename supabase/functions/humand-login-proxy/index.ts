@@ -7,8 +7,10 @@ const CORS = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const BOT_ID       = Deno.env.get('HUMAND_BOT_ID') ?? 'notificaciones.saguapac'
-const BOT_PASSWORD = Deno.env.get('HUMAND_BOT_PASSWORD')!
+const BOT_BASIC    = Deno.env.get('HUMAND_BOT_BASIC')!
+
+console.log('BOT_BASIC length:', BOT_BASIC?.length)
+console.log('BOT_BASIC last 10:', BOT_BASIC?.slice(-10))
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -31,30 +33,15 @@ serve(async (req) => {
     }
     console.log('login usuario ok')
 
-    // Paso 2 — login del bot para obtener Bearer token
-    const botLoginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeInternalId: BOT_ID, instanceId: 7723, password: BOT_PASSWORD }),
-    })
-    const botLoginData = await botLoginRes.json()
-    if (!botLoginRes.ok) {
-      console.log('bot login error:', JSON.stringify(botLoginData))
-      return new Response(JSON.stringify({ error: 'bot login failed', detail: botLoginData }), {
-        status: 500,
-        headers: { ...CORS, 'Content-Type': 'application/json' },
-      })
-    }
-    console.log('login bot ok')
-
-    // Paso 3 — traer segmentaciones con Bearer del bot
-    const userId = loginData.user?.id
-    console.log('userId:', userId)
-    const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + userId, {
-      headers: {
-        'Authorization': 'Bearer ' + botLoginData.token,
-      },
-    })
+    // Paso 2 — traer segmentaciones con Basic del bot (public API)
+    const userInternalId = loginData.user?.employeeInternalId
+    console.log('userInternalId:', userInternalId)
+    const userRes = await fetch(
+      'https://api-prod.humand.co/public/api/v1/users/' + encodeURIComponent(userInternalId),
+      {
+        headers: { 'Authorization': 'Basic ' + BOT_BASIC },
+      }
+    )
     const userData = await userRes.json()
     console.log('userRes status:', userRes.status)
     console.log('userData full:', JSON.stringify(userData))
@@ -64,7 +51,7 @@ serve(async (req) => {
     const seccionNombres = segmentaciones.map((s: any) => s.item).filter(Boolean)
     const seccion = seccionNombres[0] ?? ''
 
-    // Paso 4 — buscar seccionIds en Supabase
+    // Paso 3 — buscar seccionIds en Supabase
     const nombres = seccionNombres.map((n: string) => '"' + n + '"').join(',')
     const mapRes = await fetch(
       SUPABASE_URL + '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' + encodeURIComponent(nombres) + ')',
