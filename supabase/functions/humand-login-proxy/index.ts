@@ -7,6 +7,7 @@ const CORS = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const BOT_TOKEN    = Deno.env.get('HUMAND_BOT_TOKEN')!
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -30,11 +31,10 @@ serve(async (req) => {
     }
 
     console.log('login ok')
-    const token = loginData.token
 
-    // Paso 2 — traer segmentaciones
+    // Paso 2 — traer segmentaciones con bot token
     const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + employeeInternalId, {
-      headers: { 'Authorization': 'Bearer ' + token },
+      headers: { 'Authorization': 'Basic ' + BOT_TOKEN },
     })
     const userData = await userRes.json()
     const segmentaciones = userData.segmentations ?? []
@@ -43,7 +43,7 @@ serve(async (req) => {
     const seccionNombres = segmentaciones.map((s) => s.item).filter(Boolean)
     const seccion = seccionNombres[0] ?? ''
 
-    // Paso 3 — buscar seccionIds via REST
+    // Paso 3 — buscar seccionIds en Supabase
     const nombres = seccionNombres.map((n) => '"' + n + '"').join(',')
     const mapRes = await fetch(
       SUPABASE_URL + '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' + encodeURIComponent(nombres) + ')',
