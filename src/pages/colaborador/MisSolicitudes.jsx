@@ -33,7 +33,7 @@ export function MisSolicitudes() {
     if (activo) setExpanded(activo.id)
   }
 
-  const activos  = tickets.filter(t => ['PENDIENTE','APROBADO','EN_VIAJE'].includes(t.estado))
+  const activos = tickets.filter(t => ['PENDIENTE','APROBADO','EN_VIAJE','COMPLETAR_DATOS'].includes(t.estado))
   const cerrados = tickets.filter(t => ['CERRADO','RECHAZADO'].includes(t.estado))
 
   return (
@@ -90,7 +90,7 @@ export function MisSolicitudes() {
 
 function TicketCard({ ticket, expanded, onToggle, onRetorno }) {
   const showQR     = ['PENDIENTE','APROBADO','EN_VIAJE'].includes(ticket.estado)
-  const showRetorno = ticket.estado === 'EN_VIAJE' && ticket.ts_llegada && !ticket.ts_retorno
+  const showRetorno = ticket.estado === 'COMPLETAR_DATOS'
 
   return (
     <div className={styles.card}>
