@@ -1,4 +1,3 @@
-```jsx
 import { useState } from 'react'
 import { useUsuario } from '../../hooks/useUsuario'
 import { buscarTicketsPorteria, confirmarLlegada } from '../../lib/tickets'
