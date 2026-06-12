@@ -48,7 +48,7 @@ export function PorteriaRetorno() {
     setError('')
     try {
       const result = await confirmarLlegada(ticket.id, usuario.userId, usuario.nombre)
-      if (!result) throw new Error('No se recibió respuesta de Supabase')
+      if (!result) throw new Error('No se recibio respuesta de Supabase')
 
       await supabase.functions.invoke('notificar-retorno', {
         body: {
@@ -59,7 +59,7 @@ export function PorteriaRetorno() {
 
       setConfirmado(true)
     } catch (e) {
-      setError(`Error: ${e?.message ?? JSON.stringify(e)}`)
+      setError('Error al confirmar: ' + (e?.message ?? 'Intenta de nuevo.'))
     } finally {
       setSaving(false)
     }
