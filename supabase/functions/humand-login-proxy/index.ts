@@ -7,10 +7,8 @@ const CORS = {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const BOT_BASIC    = Deno.env.get('HUMAND_BOT_BASIC')!
-
-console.log('BOT_BASIC length:', BOT_BASIC?.length)
-console.log('BOT_BASIC last 10:', BOT_BASIC?.slice(-10))
+const BOT_ID       = Deno.env.get('HUMAND_BOT_ID') ?? '937440'
+const BOT_PASSWORD = Deno.env.get('HUMAND_BOT_PASSWORD')!
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -18,7 +16,7 @@ serve(async (req) => {
     const { employeeInternalId, password } = await req.json()
     console.log('login intento:', employeeInternalId)
 
-    // Paso 1 — login
+    // Paso 1 — login del usuario
     const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -31,26 +29,40 @@ serve(async (req) => {
         headers: { ...CORS, 'Content-Type': 'application/json' },
       })
     }
-    console.log('login ok')
+    console.log('login usuario ok')
 
-    // Paso 2 — traer segmentaciones con bot basic auth
+    // Paso 2 — login del bot para obtener Bearer token
+    const botLoginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeInternalId: BOT_ID, instanceId: 7723, password: BOT_PASSWORD }),
+    })
+    const botLoginData = await botLoginRes.json()
+    if (!botLoginRes.ok) {
+      console.log('bot login error:', JSON.stringify(botLoginData))
+      return new Response(JSON.stringify({ error: 'bot login failed', detail: botLoginData }), {
+        status: 500,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+    console.log('login bot ok, token:', botLoginData.token?.slice(0, 20))
+
+    // Paso 3 — traer segmentaciones con Bearer del bot
     const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + employeeInternalId, {
       headers: {
-        'Authorization': 'Basic ' + BOT_BASIC,
+        'Authorization': 'Bearer ' + botLoginData.token,
       },
-      redirect: 'manual',
     })
+    const userData = await userRes.json()
     console.log('userRes status:', userRes.status)
-    console.log('userRes location:', userRes.headers.get('location'))
-    const userData = userRes.status === 200 ? await userRes.json() : {}
-    console.log('userData:', JSON.stringify(userData).slice(0, 500))
+    console.log('userData full:', JSON.stringify(userData))
 
     const segmentaciones = userData.segmentation ?? []
     console.log('segmentaciones:', JSON.stringify(segmentaciones))
     const seccionNombres = segmentaciones.map((s: any) => s.item).filter(Boolean)
     const seccion = seccionNombres[0] ?? ''
 
-    // Paso 3 — buscar seccionIds en Supabase
+    // Paso 4 — buscar seccionIds en Supabase
     const nombres = seccionNombres.map((n: string) => '"' + n + '"').join(',')
     const mapRes = await fetch(
       SUPABASE_URL + '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' + encodeURIComponent(nombres) + ')',
