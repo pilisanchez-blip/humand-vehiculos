@@ -38,9 +38,11 @@ serve(async (req) => {
       headers: {
         'Authorization': BOT_BASIC,
       },
+      redirect: 'manual',
     })
-    const userData = await userRes.json()
     console.log('userRes status:', userRes.status)
+    console.log('userRes location:', userRes.headers.get('location'))
+    const userData = userRes.status === 200 ? await userRes.json() : {}
     console.log('userData:', JSON.stringify(userData).slice(0, 500))
 
     const segmentaciones = userData.segmentation ?? []
