@@ -35,7 +35,9 @@ serve(async (req) => {
 
     // Paso 2 — traer segmentaciones con bot basic auth
     const userRes = await fetch('https://api-prod.humand.co/api/v1/users/' + employeeInternalId, {
-      headers: { 'Authorization': 'Basic ' + BOT_BASIC },
+    headers: { 
+    'Authorization': 'Basic ' + btoa('937440:12345678'),
+  },
     })
     const userData = await userRes.json()
     console.log('userRes status:', userRes.status)
