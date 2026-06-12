@@ -9,6 +9,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const { employeeInternalId, password } = await req.json()
+  console.log('login intento:', employeeInternalId)
 
   // Paso 1 — login
   const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
@@ -16,7 +17,10 @@ serve(async (req) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ employeeInternalId, instanceId: 7723, password }),
   })
+
   const loginData = await loginRes.json()
+  console.log('loginRes.ok:', loginRes.ok, 'status:', loginRes.status)
+
   if (!loginRes.ok) {
     return new Response(JSON.stringify(loginData), {
       status: loginRes.status,
@@ -25,6 +29,7 @@ serve(async (req) => {
   }
 
   const token = loginData.token
+  console.log('token obtenido:', token ? 'si' : 'no')
 
   // Paso 2 — traer perfil con segmentaciones
   const meRes = await fetch('https://api-prod.humand.co/api/v1/users/me', {
@@ -33,8 +38,9 @@ serve(async (req) => {
       'Content-Type': 'application/json',
     },
   })
+
   const meData = await meRes.json()
-  console.log('meData:', JSON.stringify(meData)) 
+  console.log('meData:', JSON.stringify(meData))
 
   // Extraer seccionIds y nombre de sección
   const segmentacion = meData.segmentation ?? []
