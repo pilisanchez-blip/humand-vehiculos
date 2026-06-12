@@ -90,7 +90,7 @@ export function PorteriaRetorno() {
               }}
               onError={(err) => {
                 setMostrarScanner(false)
-                setError(`Error cámara: ${err?.message ?? err}`)
+                setError('Error camara: ' + (err?.message ?? err))
               }}
             />
           ) : (
