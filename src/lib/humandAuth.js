@@ -33,8 +33,8 @@ export async function refreshSession() {
     if (!res.ok) return
     const data = await res.json()
     saveSession({ ...session, ...data })
-  } catch {
-    // silencioso — sesión existente sigue siendo válida
+  } catch (e) {
+    console.error('refresh error:', e)
   }
 }
 
