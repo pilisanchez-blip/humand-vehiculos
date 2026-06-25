@@ -3,12 +3,10 @@ import { login, saveSession } from '../lib/humandAuth'
 import { supabase } from '../lib/supabase'
 import { getSubordinados } from '../lib/redash'
 
-const AZUL        = '#5b6ef5'
-const AZUL_HOVER  = '#4a5de0'
-const TEXTO       = '#303036'
-const TEXTO_SEC   = '#636271'
-const BORDE       = '#e0e0e8'
-const BG          = '#f5f6f8'
+const AZUL       = '#5b6ef5'
+const AZUL_HOVER = '#4a5de0'
+const TEXTO      = '#303036'
+const BORDE      = '#e0e0e8'
 
 export default function Login() {
   const [employeeId, setEmployeeId] = useState('')
@@ -36,20 +34,19 @@ export default function Login() {
       const esJefe       = subordinados.length > 0
 
       let rol = 'colaborador'
-      if (porteria?.rol)  rol = 'porteria'
-      else if (esJefe)    rol = 'jefe'
-
-      const jefeInternalId = data.jefeInternalId ?? null
+      if (porteria?.rol) rol = 'porteria'
+      else if (esJefe)   rol = 'jefe'
 
       saveSession({
-        userId:         String(userId),
-        nombre:         `${data.user.firstName} ${data.user.lastName}`,
+        userId:             String(userId),
+        employeeInternalId: employeeId,
+        nombre:             `${data.user.firstName} ${data.user.lastName}`,
         rol,
         esAdmin,
-        token:          data.accessToken,
-        seccionIds:     data.seccionIds ?? [],
-        seccion:        data.seccion ?? '',
-        jefeInternalId,
+        token:              data.accessToken,
+        seccionIds:         data.seccionIds ?? [],
+        seccion:            data.seccion ?? '',
+        jefeInternalId:     data.jefeInternalId ?? null,
       })
 
       window.location.href = '/'
@@ -70,15 +67,12 @@ export default function Login() {
       fontFamily: 'Roboto, sans-serif',
       letterSpacing: '0.2px',
     }}>
-
-      {/* Logo */}
       <div style={{ marginBottom: 64 }}>
         <svg width="120" height="28" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg">
           <text x="0" y="22" fontFamily="Roboto, sans-serif" fontSize="22" fontWeight="400" fill="#213478" letterSpacing="2">humand</text>
         </svg>
       </div>
 
-      {/* Contenido */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 480 }}>
         <h1 style={{
           fontSize: 32,

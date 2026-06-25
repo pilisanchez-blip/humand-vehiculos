@@ -9,27 +9,43 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const BOT_BASIC    = Deno.env.get('HUMAND_BOT_BASIC')!
 
+console.log('BOT_BASIC length:', BOT_BASIC?.length)
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
-
   try {
-    const { userInternalId } = await req.json()
-    if (!userInternalId) {
-      return new Response(JSON.stringify({ error: 'missing userInternalId' }), {
-        status: 400,
+    const { employeeInternalId, password } = await req.json()
+    console.log('login intento:', employeeInternalId)
+
+    // Paso 1 — login del usuario
+    const loginRes = await fetch('https://api-prod.humand.co/api/v1/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeInternalId, instanceId: 7723, password }),
+    })
+    const loginData = await loginRes.json()
+    if (!loginRes.ok) {
+      return new Response(JSON.stringify(loginData), {
+        status: loginRes.status,
         headers: { ...CORS, 'Content-Type': 'application/json' },
       })
     }
+    console.log('login usuario ok')
 
+    // Paso 2 — traer segmentaciones + jefe con Basic del bot (public API)
+    const userInternalId = loginData.user?.employeeInternalId
+    console.log('userInternalId:', userInternalId)
     const userRes = await fetch(
       'https://api-prod.humand.co/public/api/v1/users/' + encodeURIComponent(userInternalId),
-      { headers: { 'Authorization': 'Basic ' + BOT_BASIC } }
+      {
+        headers: { 'Authorization': 'Basic ' + BOT_BASIC },
+      }
     )
     const userData = await userRes.json()
+    console.log('userRes status:', userRes.status)
 
     const segmentaciones = userData.segmentations ?? []
     const GRUPOS = ['DEPARTAMENTOS', 'SECCIONES', 'GERENCIAS']
-
     const seccionNombres = segmentaciones
       .filter((s: any) => GRUPOS.includes(s.group))
       .map((s: any) => s.item)
@@ -43,13 +59,12 @@ serve(async (req) => {
 
     const jefeInternalId =
       userData.relationships?.find((r: any) => r.name === 'BOSS')?.employeeInternalId ?? null
+    console.log('jefeInternalId:', jefeInternalId)
 
+    // Paso 3 — buscar seccionIds en Supabase
     const nombres = seccionNombres.map((n: string) => '"' + n + '"').join(',')
     const mapRes = await fetch(
-      SUPABASE_URL +
-        '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' +
-        encodeURIComponent(nombres) +
-        ')',
+      SUPABASE_URL + '/rest/v1/vehiculo_segmentacion_map?select=segmentation_item_id,seccion_spreadsheet&seccion_spreadsheet=in.(' + encodeURIComponent(nombres) + ')',
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -58,15 +73,15 @@ serve(async (req) => {
       }
     )
     const mapData = await mapRes.json()
-    const seccionIds = Array.isArray(mapData)
-      ? mapData.map((r: any) => r.segmentation_item_id)
-      : []
+    console.log('mapData:', JSON.stringify(mapData))
+    const seccionIds = Array.isArray(mapData) ? mapData.map((r: any) => r.segmentation_item_id) : []
 
-    return new Response(JSON.stringify({ seccionIds, seccion, jefeInternalId }), {
+    return new Response(JSON.stringify({ ...loginData, seccionIds, seccion, jefeInternalId }), {
       status: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })
   } catch (e: any) {
+    console.log('ERROR:', e.message)
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },

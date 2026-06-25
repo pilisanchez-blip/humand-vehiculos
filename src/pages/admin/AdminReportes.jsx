@@ -30,6 +30,7 @@ export function AdminReportes() {
         vehiculo_placa:         'Vehículo',
         km_inicial:             'KM Inicial',
         km_final:               'KM Final',
+        km_recorrido:           'KM Recorrido',
         estado:                 'Estado',
         ts_solicitud:           'Fecha Solicitud',
         ts_aprobacion:          'Fecha Aprobación',
@@ -44,8 +45,16 @@ export function AdminReportes() {
       }
 
       const filas = data.map(r => {
+        const kmRecorrido = (r.km_final != null && r.km_inicial != null)
+          ? r.km_final - r.km_inicial
+          : ''
+
         const fila = {}
         for (const [key, label] of Object.entries(columnas)) {
+          if (key === 'km_recorrido') {
+            fila[label] = kmRecorrido
+            continue
+          }
           let val = r[key] ?? ''
           if (typeof val === 'string' && val.includes('T') && val.includes('Z')) {
             val = new Date(val).toLocaleString('es-AR', {
@@ -59,8 +68,6 @@ export function AdminReportes() {
       })
 
       const ws = XLSX.utils.json_to_sheet(filas)
-
-      // Ancho de columnas
       ws['!cols'] = Object.values(columnas).map(h => ({ wch: Math.max(h.length + 2, 16) }))
 
       const wb = XLSX.utils.book_new()
