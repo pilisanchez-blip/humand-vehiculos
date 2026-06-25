@@ -18,7 +18,7 @@ export async function login(employeeInternalId, password) {
 
 export async function refreshSession() {
   const session = getSession()
-  if (!session?.employeeInternalId) return
+  if (!session?.userId) return
 
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/humand-refresh-session`, {
@@ -28,7 +28,7 @@ export async function refreshSession() {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'apikey':        SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ userInternalId: session.employeeInternalId }),
+      body: JSON.stringify({ userInternalId: session.userId }),
     })
     if (!res.ok) return
     const data = await res.json()

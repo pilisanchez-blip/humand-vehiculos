@@ -43,7 +43,6 @@ export default function Login() {
 
       saveSession({
         userId:         String(userId),
-        employeeInternalId: employeeId,  
         nombre:         `${data.user.firstName} ${data.user.lastName}`,
         rol,
         esAdmin,
